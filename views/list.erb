@@ -1,0 +1,49 @@
+<section id="todos">
+  <header>
+    <h2><%= @list[:name] %></h2> 
+    <ul>
+      <li><a class="edit" href="/lists/<%= @list_idx %>/edit">Edit list</a></li>
+    </ul>
+    <br>
+  </header>
+
+  <ul>
+    <% @list[:todos].each_with_index do |todo, idx| %>
+
+      <li <%= "class='complete'" if todo[:complete] %> >
+
+        <form action="/lists/<%= @list_idx %>/todos/<%= idx %>/update" method="post" class="check">
+          <input type="hidden" name="completed" value=<%= !todo[:complete] %> />
+          <button type="submit"></button>
+        </form>
+
+        <h3><%= todo[:name] %></h3>
+
+        <form action="/lists/<%= @list_idx %>/todos/<%= idx %>/delete" method="post" class="delete">
+          <button type="submit">Delete</button>
+        </form>
+
+      </li>
+
+    <% end %>
+  </ul>
+</section>
+
+<form action="/lists/<%= @list_idx %>/todos" method="post">
+  <dl>
+    <dt>
+      <label for="todo">Enter a new todo item:</label>
+    </dt>
+      <dd>
+        <% invalid_todo = session.delete(:invalid_name) %>
+      <input name="todo" placeholder="Something to do" type="text" value="<%= invalid_todo %>">
+    </dd>
+  </dl>
+  <fieldset class="actions">
+    <input type="submit" value="Add">
+  </fieldset>
+</form>
+
+<% content_for :header_links do %>
+  <a class="list" href="/lists">Return to all lists</a>
+<% end %>
