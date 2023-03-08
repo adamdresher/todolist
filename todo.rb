@@ -49,18 +49,18 @@ helpers do
     'complete' if total_todos(list) > 0 && total_todos_remaining(list).zero?
   end
 
-  # Returns each list nested with original index
   def lists_sort_by_incomplete(lists, &block)
-    lists = lists.map.with_index { |list, idx| [list, idx] }
-    lists = lists.sort_by { |list| list_class(list[0]) ? 1 : 0 }
-    lists.each { |list, idx| yield list, idx }
+    completed_lists, incompleted_lists = lists.partition { |list| list_class(list) }
+
+    incompleted_lists.each { |list| yield list, lists.index(list) }
+    completed_lists.each { |list| yield list, lists.index(list) }
   end
 
-  # Returns each list nested with original index
   def todos_sort_by_incomplete(todos, &block)
-    todos = todos.map.with_index { |todo, idx| [todo, idx] }
-    todos = todos.sort_by { |todo| todo[0][:complete] ? 1 : 0 }
-    todos.each { |todo, idx| yield todo, idx }
+    completed_todos, incompleted_todos = todos.partition { |todo| todo[:complete] }
+
+    incompleted_todos.each { |todo| yield todo, todos.index(todo) }
+    completed_todos.each { |todo| yield todo, todos.index(todo) }
   end
 end
 
