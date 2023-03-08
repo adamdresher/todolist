@@ -15,7 +15,7 @@
   </header>
 
   <ul>
-    <% todos_sort_by_incomplete(@list[:todos]).each do |todo, idx| %>
+    <% todos_sort_by_incomplete(@list[:todos]) do |todo, idx| %>
       <li <%= "class='complete'" if todo[:complete] %> >
 
         <form action="/lists/<%= @list_idx %>/todos/<%= idx %>/update" method="post" class="check">
