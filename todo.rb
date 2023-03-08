@@ -14,9 +14,9 @@ before do
   session[:lists] ||= []
 end
 
-# Return an error message if the name is invalid.
-# Return nil if the name is valid
 helpers do
+  # Return an error message if the list name is invalid.
+  # Return nil if the name is valid
   def error_for_list_name(name)
     name = name.strip
 
@@ -27,12 +27,26 @@ helpers do
     end
   end
 
+  # Return an error message if the todo name is invalid.
+  # Return nil if the name is valid
   def error_for_todo_name(name)
     name = name.strip
 
     if !(1..100).cover? name.size
       'Todo must be between 1 and 100 characters.'
     end
+  end
+
+  def total_todos(list)
+    list[:todos].size
+  end
+
+  def total_todos_remaining(list)
+    list[:todos].select { |todo| !todo[:complete] }.size
+  end
+
+  def list_class(list)
+    'complete' if total_todos(list) > 0 && total_todos_remaining(list).zero?
   end
 end
 
@@ -119,7 +133,7 @@ post "/lists/:list_idx/todos" do
     session[:error] = error
     session[:invalid_todo_name] = @todo
   else
-    session[:lists][@list_idx][:todos] << { name: @todo.strip, completed: 'false' }
+    session[:lists][@list_idx][:todos] << { name: @todo.strip }
     session[:success] = 'A new todo has been added.'
   end
 
@@ -141,10 +155,21 @@ post "/lists/:list_idx/todos/:todo_idx/update" do
   @list_idx = params[:list_idx].to_i
   @todo_idx = params[:todo_idx].to_i
   todo = session[:lists][@list_idx][:todos][@todo_idx]
-  todo_status = (params[:completed] == 'true')
+  todo_status = (params[:complete] == 'true')
 
   todo[:complete] = todo_status
   session[:success] = "A todo has been updated."
   
+  redirect "/lists/#{@list_idx}"
+end
+!
+# Complete all todos from the list
+post "/lists/:list_idx/todos/complete_all" do
+  @list_idx = params[:list_idx].to_i
+  list = session[:lists][@list_idx]
+
+  list[:todos].each { |todo| todo[:complete] = true }
+  session[:success] = 'All todos have been marked complete.'
+
   redirect "/lists/#{@list_idx}"
 end
