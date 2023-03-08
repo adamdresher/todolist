@@ -48,6 +48,18 @@ helpers do
   def list_class(list)
     'complete' if total_todos(list) > 0 && total_todos_remaining(list).zero?
   end
+
+  # Returns each list nested with original index
+  def lists_sort_by_incomplete(lists)
+    lists = lists.map.with_index { |list, idx| [list, idx] }
+    lists.sort_by { |list| list_class(list[0]) ? 1 : 0 }
+  end
+
+  # Returns each list nested with original index
+  def todos_sort_by_incomplete(todos)
+    todos = todos.map.with_index { |todo, idx| [todo, idx] }
+    todos.sort_by { |todo| todo[0][:complete] ? 1 : 0 }
+  end
 end
 
 get '/' do
@@ -168,8 +180,10 @@ post "/lists/:list_idx/todos/complete_all" do
   @list_idx = params[:list_idx].to_i
   list = session[:lists][@list_idx]
 
-  list[:todos].each { |todo| todo[:complete] = true }
-  session[:success] = 'All todos have been marked complete.'
+  if list[:todos].any?
+    list[:todos].each { |todo| todo[:complete] = true }
+    session[:success] = 'All todos have been marked complete.'
+  end
 
   redirect "/lists/#{@list_idx}"
 end

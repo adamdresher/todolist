@@ -1,20 +1,21 @@
 <section id="todos" class="<%= list_class(@list) %>" >
   <header>
     <h2><%= @list[:name] %></h2> 
+
     <ul>
       <li>
         <form action="/lists/<%= @list_idx %>/todos/complete_all" method="post">
           <button class="check" type="submit">Complete All</button>
         </form>
       </li>
+
       <li><a class="edit" href="/lists/<%= @list_idx %>/edit">Edit list</a></li>
     </ul>
     <br>
   </header>
 
   <ul>
-    <% @list[:todos].each_with_index do |todo, idx| %>
-
+    <% todos_sort_by_incomplete(@list[:todos]).each do |todo, idx| %>
       <li <%= "class='complete'" if todo[:complete] %> >
 
         <form action="/lists/<%= @list_idx %>/todos/<%= idx %>/update" method="post" class="check">
@@ -29,7 +30,6 @@
         </form>
 
       </li>
-
     <% end %>
   </ul>
 </section>
