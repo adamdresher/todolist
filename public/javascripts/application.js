@@ -4,10 +4,23 @@ $(function() {
     event.preventDefault();
     event.stopPropagation();
 
-    var ok = confirm("Warning, you cannot undo deletion.  Please click 'OK' to confirm before deleting.")
+    var ok = confirm("Warning, this action is permanent.  Please click 'OK' to confirm before deleting.")
     if (ok) {
-      this.submit();
+      
+      var form = $(this);
+
+      var request = $.ajax({
+        url: form.attr('action'),
+        method: form.attr('method')
+      });
+
+      request.done(function(data, textStatus, jqXHR) {
+        if (jqXHR.status == 204) {
+          form.parent('li').remove();
+        } else if (jqXHR.status == 200) {
+          document.location = data;
+        }
+      });
     };
   });
-
 })
