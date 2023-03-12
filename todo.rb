@@ -8,6 +8,7 @@ require 'tilt/erubis'
 configure do
   enable :sessions
   set :session_secret, 'secret'
+  set :erb, :escape_html => true
 end
 
 before do
@@ -15,7 +16,21 @@ before do
 end
 
 helpers do
-  # Return an error message if the list name is invalid.
+  # Manual way to escape user input for rendering
+  # def h(content)
+  #   Rack::Utils.escape_html content
+  # end
+
+  # Validates for out of range list index and words
+  def load_list(idx)
+    lists_range = session[:lists].size - 1
+    list = session[:lists][idx.to_i] if ('0'..lists_range.to_s).include? idx
+    return list if list
+
+    session[:error] = "The requested list does not exist."
+    redirect "/lists"
+  end
+
   # Return nil if the name is valid
   def error_for_list_name(name)
     name = name.strip
@@ -27,7 +42,6 @@ helpers do
     end
   end
 
-  # Return an error message if the todo name is invalid.
   # Return nil if the name is valid
   def error_for_todo_name(name)
     name = name.strip
@@ -95,42 +109,42 @@ post '/lists' do
 end
 
 # View a list
-get '/lists/:idx' do
-  @list_idx = params[:idx].to_i
-  @list = session[:lists][@list_idx]
+get '/lists/:list_idx' do
+  @list_idx = params[:list_idx]
+  @list = load_list(@list_idx)
 
   erb :list, layout: :layout
 end
 
 # Render an edit list form
-get '/lists/:idx/edit' do
-  @list_idx = params[:idx].to_i
-  @list = session[:lists][@list_idx]
+get '/lists/:list_idx/edit' do
+  @list_idx = params[:list_idx]
+  @list = load_list(@list_idx)
 
   erb :edit_list, layout: :layout
 end
 
 # Edits a list name
-post '/lists/:idx' do
-  @idx = params[:idx].to_i
-  @list = session[:lists][@idx]
+post '/lists/:list_idx' do
+  @list_idx = params[:list_idx]
+  @list = load_list(@list_idx)
   new_name = params[:list_name]
   error = error_for_list_name(new_name)
 
   if error
     session[:error] = error
     session[:invalid_name] = new_name
-    redirect "lists/#{@idx}/edit"
+    redirect "lists/#{@list_idx}/edit"
   else
     @list[:name] = new_name.strip
     session[:success] = "A list's name has been changed."
-    redirect "/lists/#{@idx}"
+    redirect "/lists/#{@list_idx}"
   end
 end
 
 # Delete a list
-post "/lists/:idx/delete" do
-  idx = params[:idx].to_i
+post "/lists/:list_idx/delete" do
+  idx = params[:list_idx].to_i
   session[:lists].delete_at(idx)
   session[:success] = "A list has been deleted."
 
@@ -139,7 +153,7 @@ end
 
 # Add a todo to the list
 post "/lists/:list_idx/todos" do
-  @list_idx = params[:list_idx].to_i
+  @list_idx = params[:list_idx]
   @todo = params[:todo]
   error = error_for_todo_name(@todo)
 
@@ -147,7 +161,7 @@ post "/lists/:list_idx/todos" do
     session[:error] = error
     session[:invalid_todo_name] = @todo
   else
-    session[:lists][@list_idx][:todos] << { name: @todo.strip }
+    load_list(@list_idx)[:todos] << { name: @todo.strip }
     session[:success] = 'A new todo has been added.'
   end
 
@@ -156,9 +170,9 @@ end
 
 # Delete a todo from the list
 post "/lists/:list_idx/todos/:todo_idx/delete" do
-  @list_idx = params[:list_idx].to_i
+  @list_idx = params[:list_idx]
   @todo_idx = params[:todo_idx].to_i
-  session[:lists][@list_idx][:todos].delete_at(@todo_idx)
+  load_list(@list_idx)[:todos].delete_at(@todo_idx)
   session[:success] = "A todo has been deleted."
 
   redirect "/lists/#{@list_idx}"
@@ -166,9 +180,9 @@ end
 
 # Update a todo from the list
 post "/lists/:list_idx/todos/:todo_idx/update" do
-  @list_idx = params[:list_idx].to_i
+  @list_idx = params[:list_idx]
   @todo_idx = params[:todo_idx].to_i
-  todo = session[:lists][@list_idx][:todos][@todo_idx]
+  todo = load_list(@list_idx)[:todos][@todo_idx]
   todo_status = (params[:complete] == 'true')
 
   todo[:complete] = todo_status
@@ -176,11 +190,11 @@ post "/lists/:list_idx/todos/:todo_idx/update" do
   
   redirect "/lists/#{@list_idx}"
 end
-!
+
 # Complete all todos from the list
 post "/lists/:list_idx/todos/complete_all" do
-  @list_idx = params[:list_idx].to_i
-  list = session[:lists][@list_idx]
+  @list_idx = params[:list_idx]
+  list = load_list(@list_idx)
 
   if list[:todos].any?
     list[:todos].each { |todo| todo[:complete] = true }

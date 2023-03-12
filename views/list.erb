@@ -16,7 +16,7 @@
 
   <ul>
     <% todos_sort_by_incomplete(@list[:todos]) do |todo, idx| %>
-      <li <%= "class='complete'" if todo[:complete] %> >
+      <li <%== "class='complete'" if todo[:complete] %> >
 
         <form action="/lists/<%= @list_idx %>/todos/<%= idx %>/update" method="post" class="check">
           <input type="hidden" name="complete" value=<%= !todo[:complete] %> />
