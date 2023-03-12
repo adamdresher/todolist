@@ -1,23 +1,13 @@
-// console.log("This is a test.");
-// confirm("Are you sure?");
-
 $(function() {
 
   $('form.delete').submit(function(event) {
     event.preventDefault();
     event.stopPropagation();
 
-    var ok = confirm("Are you sure?")
+    var ok = confirm("Warning, you cannot undo deletion.  Please click 'OK' to confirm before deleting.")
     if (ok) {
       this.submit();
     };
   });
-  // $('#destructive_button').on('click', function() {
-  //   if (confirm("Are you sure?")) {
-  //     console.log("Confirmation affirmed.");
-  //   } else {
-  //     console.log("Confirmation rejected.");
-  //   }
-  // });
 
 })
