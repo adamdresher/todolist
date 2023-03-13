@@ -152,9 +152,7 @@ end
 # Delete a list
 post "/lists/:list_id/delete" do
   id = params[:list_id].to_i
-  lists = session[:lists]
-
-  lists.reject! { |list| list[:id] == id }
+  session[:lists].reject! { |list| list[:id] == id }
   session[:success] = "A list has been deleted."
 
   if env['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest'
