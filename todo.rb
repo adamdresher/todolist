@@ -17,8 +17,6 @@ end
 
 # Validates for out of range list index and words
 def load_list(id)
-  # lists_range = session[:lists].size - 1
-  # list = session[:lists][id.to_i] if ('0'..lists_range.to_s).include? id
   list = session[:lists].select { |list| list[:id] == id.to_i }.first
   return list if list
 
@@ -27,40 +25,14 @@ def load_list(id)
 end
 
 helpers do
-  # Return nil if the name is valid
-  def error_for_list_name(name)
-    name = name.strip
-
-    if !(1..100).cover? name.size
-      'List name must be between 1 and 100 characters.'
-    elsif session[:lists].any? { |list| list[:name] == name }
-      'List name must be unique.'
-    end
-  end
-
-  # Return nil if the name is valid
-  def error_for_todo_name(name)
-    name = name.strip
-
-    if !(1..100).cover? name.size
-      'Todo must be between 1 and 100 characters.'
-    end
+  def select_todo(todos, id)
+    todos.select { |todo| todo[:id] === id.to_i }.first
   end
 
   # Return 1 if no list found
-  def next_list_id(lists)
-    max_id = lists.map { |list| list[:id] }.max || 0
+  def next_id(elements)
+    max_id = elements.map { |element| element[:id] }.max || 0
     max_id + 1
-  end
-
-  # Return 1 if no todos found
-  def next_todo_id(todos)
-    max_id = todos.map { |todo| todo[:id] }.max || 0
-    max_id + 1
-  end
-
-  def select_todo(todos, id)
-    todos.select { |todo| todo[:id] === id.to_i }.first
   end
 
   def total_todos(list)
@@ -87,6 +59,26 @@ helpers do
 
     incompleted_todos.each(&block)
     completed_todos.each(&block)
+  end
+
+  # Return nil if the name is valid
+  def error_for_list_name(name)
+    name = name.strip
+
+    if !(1..100).cover? name.size
+      'List name must be between 1 and 100 characters.'
+    elsif session[:lists].any? { |list| list[:name] == name }
+      'List name must be unique.'
+    end
+  end
+
+  # Return nil if the name is valid
+  def error_for_todo_name(name)
+    name = name.strip
+
+    if !(1..100).cover? name.size
+      'Todo must be between 1 and 100 characters.'
+    end
   end
 end
 
@@ -115,7 +107,7 @@ post '/lists' do
     redirect '/lists/new'
   else
     lists = session[:lists]
-    id = next_list_id(lists)
+    id = next_id(lists)
 
     lists << { id: id, name: list_name.strip, todos: [] }
     session[:success] = 'A new list has been added.'
@@ -184,7 +176,7 @@ post "/lists/:list_id/todos" do
     session[:error] = error
     session[:invalid_todo_name] = @todo
   else
-    id = next_todo_id(@list[:todos])
+    id = next_id(@list[:todos])
 
     @list[:todos] << { id: id, name: @todo.strip }
     session[:success] = 'A new todo has been added.'
