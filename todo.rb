@@ -26,11 +26,6 @@ def load_list(idx)
 end
 
 helpers do
-  # Manual way to escape user input for rendering
-  # def h(content)
-  #   Rack::Utils.escape_html content
-  # end
-
   # Return nil if the name is valid
   def error_for_list_name(name)
     name = name.strip
