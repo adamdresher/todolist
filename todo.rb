@@ -78,8 +78,8 @@ helpers do
   def todos_sort_by_incomplete(todos, &block)
     completed_todos, incompleted_todos = todos.partition { |todo| todo[:complete] }
 
-    incompleted_todos.each { |todo| yield todo }
-    completed_todos.each { |todo| yield todo }
+    incompleted_todos.each(&block)
+    completed_todos.each(&block)
   end
 end
 
