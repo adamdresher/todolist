@@ -15,21 +15,21 @@ before do
   session[:lists] ||= []
 end
 
+# Validates for out of range list index and words
+def load_list(idx)
+  lists_range = session[:lists].size - 1
+  list = session[:lists][idx.to_i] if ('0'..lists_range.to_s).include? idx
+  return list if list
+
+  session[:error] = "The requested list does not exist."
+  redirect "/lists"
+end
+
 helpers do
   # Manual way to escape user input for rendering
   # def h(content)
   #   Rack::Utils.escape_html content
   # end
-
-  # Validates for out of range list index and words
-  def load_list(idx)
-    lists_range = session[:lists].size - 1
-    list = session[:lists][idx.to_i] if ('0'..lists_range.to_s).include? idx
-    return list if list
-
-    session[:error] = "The requested list does not exist."
-    redirect "/lists"
-  end
 
   # Return nil if the name is valid
   def error_for_list_name(name)
