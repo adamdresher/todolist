@@ -16,9 +16,10 @@ before do
 end
 
 # Validates for out of range list index and words
-def load_list(idx)
-  lists_range = session[:lists].size - 1
-  list = session[:lists][idx.to_i] if ('0'..lists_range.to_s).include? idx
+def load_list(id)
+  # lists_range = session[:lists].size - 1
+  # list = session[:lists][id.to_i] if ('0'..lists_range.to_s).include? id
+  list = session[:lists].select { |list| list[:id] == id.to_i }.first
   return list if list
 
   session[:error] = "The requested list does not exist."
@@ -46,6 +47,12 @@ helpers do
     end
   end
 
+  # Return 1 if no list found
+  def next_list_id(lists)
+    max_id = lists.map { |list| list[:id] }.max || 0
+    max_id + 1
+  end
+
   # Return 1 if no todos found
   def next_todo_id(todos)
     max_id = todos.map { |todo| todo[:id] }.max || 0
@@ -53,7 +60,7 @@ helpers do
   end
 
   def select_todo(todos, id)
-    todos.select { |todo| todo[:id] === id }.first
+    todos.select { |todo| todo[:id] === id.to_i }.first
   end
 
   def total_todos(list)
@@ -71,8 +78,8 @@ helpers do
   def lists_sort_by_incomplete(lists, &block)
     completed_lists, incompleted_lists = lists.partition { |list| list_class(list) }
 
-    incompleted_lists.each { |list| yield list, lists.index(list) }
-    completed_lists.each { |list| yield list, lists.index(list) }
+    incompleted_lists.each(&block)
+    completed_lists.each(&block)
   end
 
   def todos_sort_by_incomplete(todos, &block)
@@ -107,7 +114,10 @@ post '/lists' do
     session[:error] = error
     redirect '/lists/new'
   else
-    session[:lists] << { name: list_name.strip, todos: [] }
+    lists = session[:lists]
+    id = next_list_id(lists)
+
+    lists << { id: id, name: list_name.strip, todos: [] }
     session[:success] = 'A new list has been added.'
     redirect '/lists'
   end
@@ -150,7 +160,9 @@ end
 # Delete a list
 post "/lists/:list_id/delete" do
   id = params[:list_id].to_i
-  session[:lists].delete_at(id)
+  lists = session[:lists]
+
+  lists.reject! { |list| list[:id] == id }
   session[:success] = "A list has been deleted."
 
   if env['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest'
@@ -184,7 +196,7 @@ end
 # Delete a todo from the list
 post "/lists/:list_id/todos/:todo_id/delete" do
   @list_id = params[:list_id]
-  @todo_id = params[:todo_id].to_i
+  @todo_id = params[:todo_id]
   @list = load_list(@list_id)
 
   todo = select_todo(@list[:todos], @todo_id)
@@ -201,12 +213,12 @@ end
 # Update a todo from the list
 post "/lists/:list_id/todos/:todo_id/update" do
   @list_id = params[:list_id]
-  @todo_id = params[:todo_id].to_i
+  @todo_id = params[:todo_id]
   list = load_list(@list_id)
 
   todo = select_todo(list[:todos], @todo_id)
-
   todo_status = (params[:complete] == 'true')
+
   todo[:complete] = todo_status
   session[:success] = "A todo has been updated."
   
