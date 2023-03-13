@@ -47,14 +47,14 @@ helpers do
     'complete' if total_todos(list) > 0 && total_todos_remaining(list).zero?
   end
 
-  def lists_sort_by_incomplete(lists, &block)
+  def sort_lists(lists, &block)
     completed_lists, incompleted_lists = lists.partition { |list| list_class(list) }
 
     incompleted_lists.each(&block)
     completed_lists.each(&block)
   end
 
-  def todos_sort_by_incomplete(todos, &block)
+  def sort_todos(todos, &block)
     completed_todos, incompleted_todos = todos.partition { |todo| todo[:complete] }
 
     incompleted_todos.each(&block)
