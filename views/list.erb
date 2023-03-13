@@ -4,28 +4,28 @@
 
     <ul>
       <li>
-        <form action="/lists/<%= @list_idx %>/todos/complete_all" method="post">
+        <form action="/lists/<%= @list_id %>/todos/complete_all" method="post">
           <button class="check" type="submit">Complete All</button>
         </form>
       </li>
 
-      <li><a class="edit" href="/lists/<%= @list_idx %>/edit">Edit list</a></li>
+      <li><a class="edit" href="/lists/<%= @list_id %>/edit">Edit list</a></li>
     </ul>
     <br>
   </header>
 
   <ul>
-    <% todos_sort_by_incomplete(@list[:todos]) do |todo, idx| %>
+    <% todos_sort_by_incomplete(@list[:todos]) do |todo| %>
       <li <%== "class='complete'" if todo[:complete] %> >
 
-        <form action="/lists/<%= @list_idx %>/todos/<%= idx %>/update" method="post" class="check">
+        <form action="/lists/<%= @list_id %>/todos/<%= todo[:id] %>/update" method="post" class="check">
           <input type="hidden" name="complete" value=<%= !todo[:complete] %> />
           <button type="submit"></button>
         </form>
 
         <h3><%= todo[:name] %></h3>
 
-        <form action="/lists/<%= @list_idx %>/todos/<%= idx %>/delete" method="post" class="delete">
+        <form action="/lists/<%= @list_id %>/todos/<%= todo[:id] %>/delete" method="post" class="delete">
           <button type="submit">Delete</button>
         </form>
 
@@ -34,7 +34,7 @@
   </ul>
 </section>
 
-<form action="/lists/<%= @list_idx %>/todos" method="post">
+<form action="/lists/<%= @list_id %>/todos" method="post">
   <dl>
     <dt>
       <label for="todo">Enter a new todo item:</label>
